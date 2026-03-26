@@ -1,0 +1,36 @@
+Create a C# class file for CodeMigrationTool.Models namespace called MigrationProject.cs with:
+
+1. Class MigrationProject with properties:
+   - int Id (primary key)
+   - string ProjectName (required, max 255 chars)
+   - string SourcePath (path to old .NET FW project)
+   - string TargetPath (path to new .NET 10 project)
+   - string Status (Pending/Analyzing/Transforming/Completed/Failed, default "Pending")
+   - DateTime CreatedAt (auto-set to UtcNow)
+   - DateTime? CompletedAt (nullable)
+   - int TotalFiles (count)
+   - int TransformedFiles (count)
+   - string? ErrorMessage (nullable)
+   - virtual ICollection<MigrationLog> Logs (navigation property, initialized to new List)
+
+2. Class MigrationLog with properties:
+   - int Id (primary key)
+   - int ProjectId (foreign key)
+   - string Message (log message)
+   - string Level (Info/Warning/Error, default "Info")
+   - string? SourceFile (nullable, which file had the issue)
+   - int? LineNumber (nullable, line number)
+   - DateTime CreatedAt (auto-set to UtcNow)
+   - virtual MigrationProject Project (navigation property)
+
+3. Class TransformationRule with properties:
+   - int Id (primary key)
+   - string Name (rule name)
+   - string SourcePattern (e.g., "System.Web.*")
+   - string TargetPattern (e.g., "Microsoft.AspNetCore.*")
+   - string RuleType (Namespace/Package/Syntax/API, default "Namespace")
+   - int Priority (rule priority for execution order)
+   - bool IsActive (default true)
+   - DateTime CreatedAt (auto-set to UtcNow)
+
+Include using statements and XML documentation comments for all public members.

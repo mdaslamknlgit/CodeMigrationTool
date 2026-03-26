@@ -1,0 +1,308 @@
+📋 PHASE 3: MVP IMPLEMENTATION PROMPTS
+Prompt 1: Create MigrationProject Model
+Copy this entire prompt:
+
+Code
+Create a C# class file for CodeMigrationTool.Models namespace called MigrationProject.cs with:
+
+1. Class MigrationProject with properties:
+   - int Id (primary key)
+   - string ProjectName (required, max 255 chars)
+   - string SourcePath (path to old .NET FW project)
+   - string TargetPath (path to new .NET 10 project)
+   - string Status (Pending/Analyzing/Transforming/Completed/Failed, default "Pending")
+   - DateTime CreatedAt (auto-set to UtcNow)
+   - DateTime? CompletedAt (nullable)
+   - int TotalFiles (count)
+   - int TransformedFiles (count)
+   - string? ErrorMessage (nullable)
+   - virtual ICollection<MigrationLog> Logs (navigation property, initialized to new List)
+
+2. Class MigrationLog with properties:
+   - int Id (primary key)
+   - int ProjectId (foreign key)
+   - string Message (log message)
+   - string Level (Info/Warning/Error, default "Info")
+   - string? SourceFile (nullable, which file had the issue)
+   - int? LineNumber (nullable, line number)
+   - DateTime CreatedAt (auto-set to UtcNow)
+   - virtual MigrationProject Project (navigation property)
+
+3. Class TransformationRule with properties:
+   - int Id (primary key)
+   - string Name (rule name)
+   - string SourcePattern (e.g., "System.Web.*")
+   - string TargetPattern (e.g., "Microsoft.AspNetCore.*")
+   - string RuleType (Namespace/Package/Syntax/API, default "Namespace")
+   - int Priority (rule priority for execution order)
+   - bool IsActive (default true)
+   - DateTime CreatedAt (auto-set to UtcNow)
+
+Include using statements and XML documentation comments for all public members.
+Prompt 2: Create EF Core DbContext
+Code
+Create a C# class file for CodeMigrationTool.Database namespace called MigrationDbContext.cs that:
+
+1. Inherits from DbContext
+2. Has constructor that accepts DbContextOptions<MigrationDbContext> and passes to base
+3. Has three DbSet properties:
+   - DbSet<MigrationProject> Projects
+   - DbSet<MigrationLog> Logs
+   - DbSet<TransformationRule> TransformationRules
+
+4. Override OnModelCreating(ModelBuilder modelBuilder) with:
+   - MigrationProject: key is Id, ProjectName is required max 255, Status max 50, Logs relationship is one-to-many with cascade delete
+   - MigrationLog: key is Id, Level max 20, create index on (ProjectId, CreatedAt)
+   - TransformationRule: key is Id, RuleType max 50, create index on IsActive
+
+5. Include using statements for Microsoft.EntityFrameworkCore and CodeMigrationTool.Models
+
+Use fluent API for all configurations. Include XML documentation.
+Prompt 3: Create ProjectMetadata Model
+Code
+Create a C# class file for CodeMigrationTool.Models namespace called ProjectMetadata.cs with:
+
+1. Public class ProjectMetadata with properties:
+   - string ProjectName
+   - string ProjectPath
+   - string TargetFramework (e.g., "net10.0")
+   - string AssemblyName
+   - List<string> PackageReferences (NuGet packages)
+   - List<string> ProjectReferences (other projects)
+   - List<string> FrameworkReferences
+   - DateTime AnalyzedAt
+   - bool IsValid (whether metadata was successfully extracted)
+   - List<string> Warnings (any issues found during parsing)
+
+2. Include a method: public void AddWarning(string warning)
+
+3. Include XML documentation for all public members.
+
+Keep it simple and focused on storing project metadata.
+Prompt 4: Create CsProjectAnalyzer
+Code
+Create a C# class file for CodeMigrationTool.Analyzers namespace called CsProjectAnalyzer.cs that:
+
+1. Public class CsProjectAnalyzer with:
+   - Private readonly string _projectPath field
+   - Constructor that accepts string projectPath
+   - Public method: ProjectMetadata ParseProject() that:
+     * Loads the .csproj file from disk (XML)
+     * Extracts TargetFramework from PropertyGroup
+     * Extracts AssemblyName from PropertyGroup
+     * Extracts all PackageReference items (name and version)
+     * Extracts all ProjectReference items
+     * Extracts all FrameworkReference items
+     * Returns new ProjectMetadata object with all extracted data
+     * Catches XmlException and FileNotFoundException, adds to Warnings list instead of throwing
+
+2. Use System.Xml.Linq for XDocument parsing
+
+3. Handle missing properties gracefully with default values
+
+4. Include XML documentation
+
+5. Make it testable (no static dependencies, use dependency injection pattern if needed).
+Prompt 5: Create Unit Tests for CsProjectAnalyzer
+Code
+Create a C# test class file for CodeMigrationTool.Analyzers.Tests namespace called CsProjectAnalyzerTests.cs that:
+
+1. Uses xUnit testing framework
+2. Public class CsProjectAnalyzerTests with test methods:
+   - [Fact] public void ParseProject_WithValidCsproj_ReturnsMetadata()
+   - [Fact] public void ParseProject_ExtractsTargetFramework_Correctly()
+   - [Fact] public void ParseProject_ExtractsAssemblyName_Correctly()
+   - [Fact] public void ParseProject_ExtractsPackageReferences_Correctly()
+   - [Fact] public void ParseProject_WithMissingCsproj_AddsWarning()
+   - [Fact] public void ParseProject_WithInvalidXml_HandlesGracefully()
+
+3. For each test:
+   - Create a minimal sample .csproj XML in memory or temp file
+   - Call ParseProject()
+   - Assert using xUnit assertions (Assert.NotNull, Assert.Equal, Assert.Contains)
+   - Use Shouldly for fluent assertions (e.g., result.AssemblyName.ShouldBe("TestProject"))
+
+4. Include [Theory] test with InlineData for multiple frameworks
+
+5. Include XML documentation
+
+Use best practices for unit testing: Arrange-Act-Assert pattern, one assertion per test where possible.
+Prompt 6: Create ProjectFileTransformer
+Code
+Create a C# class file for CodeMigrationTool.Transformers namespace called ProjectFileTransformer.cs that:
+
+1. Public class ProjectFileTransformer with:
+   - Private readonly ProjectMetadata _metadata field
+   - Constructor accepting ProjectMetadata metadata
+   - Public method: string TransformToNetCore() that:
+     * Takes the old .NET Framework csproj XML structure
+     * Converts to modern .NET 10 SDK format
+     * Changes Sdk attribute to "Microsoft.NET.Sdk.Web" (for web projects)
+     * Updates TargetFramework to "net10.0"
+     * Removes obsolete properties (e.g., UseLegacyNET Framework compatibility)
+     * Removes items that don't exist in .NET Core
+     * Updates package versions to .NET Core compatible versions
+     * Returns the new csproj XML as string
+
+2. Use System.Xml.Linq (XDocument) for XML manipulation
+
+3. Include private helper methods:
+   - RemoveObsoleteProperties(XDocument doc)
+   - UpdatePackageReferences(XDocument doc)
+   - UpdateTargetFramework(XDocument doc)
+
+4. Handle errors gracefully
+
+5. Include XML documentation
+Prompt 7: Create AnalysisService Interface & Implementation
+Code
+Create two C# files for CodeMigrationTool.Services namespace:
+
+FILE 1: IAnalysisService.cs
+1. Public interface IAnalysisService with methods:
+   - Task<AnalysisResult> AnalyzeProjectAsync(string projectPath)
+   - Task<List<AnalysisResult>> AnalyzeMultipleAsync(List<string> projectPaths)
+
+FILE 2: AnalysisService.cs
+1. Public class AnalysisService implementing IAnalysisService with:
+   - Private readonly ILogger<AnalysisService> _logger (injected)
+   - Constructor accepting ILogger<AnalysisService>
+   - Implementation of AnalyzeProjectAsync that:
+     * Uses CsProjectAnalyzer to parse project
+     * Creates ProjectMetadata
+     * Logs each step
+     * Returns AnalysisResult with success/failure status
+   - Implementation of AnalyzeMultipleAsync that loops and calls AnalyzeProjectAsync
+
+2. Both methods are async (use Task)
+
+3. Include error handling with try-catch
+
+4. Log using _logger (Info, Warning, Error levels)
+
+5. Include XML documentation
+
+Use dependency injection pattern for logger.
+Prompt 8: Create AnalysisResult Model
+Code
+Create a C# class file for CodeMigrationTool.Models namespace called AnalysisResult.cs with:
+
+1. Public class AnalysisResult with properties:
+   - string ProjectName
+   - string ProjectPath
+   - bool IsSuccess
+   - ProjectMetadata? Metadata (nullable)
+   - List<string> Errors (any errors encountered)
+   - List<string> Warnings (compatibility warnings)
+   - List<string> Blockers (things that must be fixed before migration)
+   - DateTime AnalyzedAt
+   - TimeSpan AnalysisDuration
+
+2. Public methods:
+   - bool HasBlockers { get; } (property that returns Blockers.Count > 0)
+   - void AddError(string error)
+   - void AddWarning(string warning)
+   - void AddBlocker(string blocker)
+
+3. Include XML documentation for all public members
+
+4. Constructor that initializes lists to new List<T>()
+Prompt 9: Create CLI Analyze Command
+Code
+Create a C# class file for CodeMigrationTool.CLI/Commands namespace called AnalyzeCommand.cs that:
+
+1. Public class AnalyzeCommand with:
+   - Public property: string SourcePath { get; set; } (the project to analyze)
+   - Public property: string? OutputPath { get; set; } (optional, where to save report)
+   - Private readonly IAnalysisService _analysisService
+   - Private readonly ILogger<AnalyzeCommand> _logger
+
+2. Constructor accepting IAnalysisService and ILogger<AnalyzeCommand>
+
+3. Public async method: Task<int> ExecuteAsync() that:
+   - Validates SourcePath exists
+   - Shows progress using Spectre.Console AnsiConsole
+   - Calls _analysisService.AnalyzeProjectAsync(SourcePath)
+   - If HasBlockers: shows red error summary
+   - If no errors: shows green success summary
+   - Outputs JSON report to OutputPath (if specified)
+   - Returns 0 on success, 1 on failure
+
+4. Private methods:
+   - DisplayResult(AnalysisResult result)
+   - SaveReportToFile(AnalysisResult result, string path)
+
+5. Use Spectre.Console for colored output:
+   - AnsiConsole.MarkupLine("[green]Success![/]") for good news
+   - AnsiConsole.MarkupLine("[red]Error![/]") for errors
+   - AnsiConsole.Progress() for progress bar
+
+6. Use System.Text.Json for JSON serialization
+
+7. Include XML documentation
+Prompt 10: Create Program.cs for CLI
+Code
+Create a C# Program.cs file for CodeMigrationTool.CLI that:
+
+1. Sets up dependency injection container:
+   - Add IAnalysisService -> AnalysisService
+   - Add ILogger -> use Serilog
+   - Add IQueryable for services
+
+2. Configures Serilog logging:
+   - Console output
+   - File output to "logs/migration-{Date}.log"
+   - MinimumLevel.Information
+
+3. Has main method that:
+   - Parses command line arguments (using simple string[] args parsing or System.CommandLine)
+   - If args[0] == "analyze":
+     * Creates AnalyzeCommand with source path from args[1]
+     * Calls ExecuteAsync()
+     * Returns exit code
+   - If no args or invalid: shows help message
+   - Catches exceptions and logs them
+
+4. Uses top-level statements (.NET 10 style)
+
+5. Include using statements for Microsoft.Extensions.DependencyInjection, Serilog, etc.
+
+Make it simple and extensible for future commands like "migrate" and "report".
+🎯 HOW TO USE THESE PROMPTS:
+Step 1: Open VS Code
+bash
+code .
+Step 2: Open Copilot Chat
+Press Ctrl+Shift+I in VS Code
+Step 3: Create a New File
+Right-click folder (e.g., src/CodeMigrationTool.Models)
+New File → MigrationProject.cs
+Step 4: Paste & Execute Prompt
+Open the new file
+Paste Prompt 1 into Copilot Chat
+Press Enter
+Copilot generates the entire code!
+Step 5: Review & Refine
+Review the generated code
+Make adjustments if needed
+Save the file
+📝 EXECUTION ORDER (Recommended):
+Day 1:
+
+✅ Prompt 1: MigrationProject (Models)
+✅ Prompt 3: ProjectMetadata (Models)
+✅ Prompt 2: DbContext (Database)
+Day 2: 4. ✅ Prompt 4: CsProjectAnalyzer (Analyzers) 5. ✅ Prompt 5: Unit Tests (Tests)
+
+Day 3: 6. ✅ Prompt 6: ProjectFileTransformer (Transformers) 7. ✅ Prompt 8: AnalysisResult (Models)
+
+Day 4: 8. ✅ Prompt 7: AnalysisService (Services)
+
+Day 5: 9. ✅ Prompt 9: AnalyzeCommand (CLI) 10. ✅ Prompt 10: Program.cs (CLI)
+
+✅ AFTER EACH PROMPT:
+Run in terminal:
+
+bash
+dotnet build
+If errors appear, ask Copilot: "Fix the compilation errors in this file"

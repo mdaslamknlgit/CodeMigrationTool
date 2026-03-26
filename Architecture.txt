@@ -239,7 +239,35 @@ CodeMigrationTool/
 
 
 =============================================================================================================================================================  
+mkdir src tests rules samples docs
+mkdir src/CodeMigrationTool.Core
+mkdir src/CodeMigrationTool.Analyzers
+mkdir src/CodeMigrationTool.Transformers
+mkdir src/CodeMigrationTool.Models
+mkdir src/CodeMigrationTool.Database
+mkdir src/CodeMigrationTool.Services
+mkdir src/CodeMigrationTool.CLI
+mkdir tests/CodeMigrationTool.Analyzers.Tests
+mkdir tests/CodeMigrationTool.Transformers.Tests
+mkdir tests/CodeMigrationTool.Integration.Tests
 
+
+dotnet new sln -n CodeMigrationTool
+dotnet new classlib -n CodeMigrationTool.Core -o src/CodeMigrationTool.Core
+dotnet new classlib -n CodeMigrationTool.Analyzers -o src/CodeMigrationTool.Analyzers
+dotnet new classlib -n CodeMigrationTool.Transformers -o src/CodeMigrationTool.Transformers
+dotnet new classlib -n CodeMigrationTool.Models -o src/CodeMigrationTool.Models
+dotnet new classlib -n CodeMigrationTool.Database -o src/CodeMigrationTool.Database
+dotnet new classlib -n CodeMigrationTool.Services -o src/CodeMigrationTool.Services
+dotnet new console -n CodeMigrationTool.CLI -o src/CodeMigrationTool.CLI
+
+dotnet new xunit -n CodeMigrationTool.Analyzers.Tests -o tests/CodeMigrationTool.Analyzers.Tests
+dotnet new xunit -n CodeMigrationTool.Transformers.Tests -o tests/CodeMigrationTool.Transformers.Tests
+dotnet new xunit -n CodeMigrationTool.Integration.Tests -o tests/CodeMigrationTool.Integration.Tests
+
+# Add all to solution
+dotnet sln add src/*/CodeMigrationTool.*.csproj
+dotnet sln add tests/*/CodeMigrationTool.*.Tests.csproj
 
 
 

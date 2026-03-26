@@ -1,0 +1,147 @@
+Step 1: Create Folder Structure
+In VS Code Terminal (Ctrl + `):
+
+bash
+mkdir src tests rules samples docs
+mkdir src/CodeMigrationTool.Core
+mkdir src/CodeMigrationTool.Analyzers
+mkdir src/CodeMigrationTool.Transformers
+mkdir src/CodeMigrationTool.Models
+mkdir src/CodeMigrationTool.Database
+mkdir src/CodeMigrationTool.Services
+mkdir src/CodeMigrationTool.CLI
+mkdir tests/CodeMigrationTool.Analyzers.Tests
+mkdir tests/CodeMigrationTool.Transformers.Tests
+mkdir tests/CodeMigrationTool.Integration.Tests
+Step 2: Create Solution & Projects
+bash
+dotnet new sln -n CodeMigrationTool
+dotnet new classlib -n CodeMigrationTool.Core -o src/CodeMigrationTool.Core
+dotnet new classlib -n CodeMigrationTool.Analyzers -o src/CodeMigrationTool.Analyzers
+dotnet new classlib -n CodeMigrationTool.Transformers -o src/CodeMigrationTool.Transformers
+dotnet new classlib -n CodeMigrationTool.Models -o src/CodeMigrationTool.Models
+dotnet new classlib -n CodeMigrationTool.Database -o src/CodeMigrationTool.Database
+dotnet new classlib -n CodeMigrationTool.Services -o src/CodeMigrationTool.Services
+dotnet new console -n CodeMigrationTool.CLI -o src/CodeMigrationTool.CLI
+
+dotnet new xunit -n CodeMigrationTool.Analyzers.Tests -o tests/CodeMigrationTool.Analyzers.Tests
+dotnet new xunit -n CodeMigrationTool.Transformers.Tests -o tests/CodeMigrationTool.Transformers.Tests
+dotnet new xunit -n CodeMigrationTool.Integration.Tests -o tests/CodeMigrationTool.Integration.Tests
+
+# Add all to solution
+dotnet sln add src/*/CodeMigrationTool.*.csproj
+dotnet sln add tests/*/CodeMigrationTool.*.Tests.csproj
+Step 3: Use Copilot to Add NuGet Packages
+In VS Code, open the Terminal and run:
+
+bash
+# Database project
+cd src/CodeMigrationTool.Database
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.0
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
+cd ../..
+
+# Analyzers project
+cd src/CodeMigrationTool.Analyzers
+dotnet add package Microsoft.CodeAnalysis.CSharp --version 4.6.0
+dotnet add package Microsoft.Build --version 17.6.0
+cd ../..
+
+# CLI project
+cd src/CodeMigrationTool.CLI
+dotnet add package Spectre.Console --version 0.48.0
+cd ../..
+
+# Test projects
+cd tests/CodeMigrationTool.Analyzers.Tests
+dotnet add package Moq --version 4.18.0
+dotnet add package Shouldly --version 4.1.0
+cd ../../..
+🤖 How to Use GitHub Copilot to Build Files:
+Example: Create MigrationProject.cs
+Open File: Right-click src/CodeMigrationTool.Models → New File → MigrationProject.cs
+
+Start Typing & Let Copilot Suggest:
+
+C#
+using System;
+using System.Collections.Generic;
+
+namespace CodeMigrationTool.Models
+{
+    // Copilot will suggest the entire class!
+    public class MigrationProject
+    {
+Press Tab or Enter to accept Copilot's suggestions
+
+If you want more control, use Copilot Chat:
+
+Press Ctrl+Shift+I (or click Copilot icon)
+Ask: "Create a MigrationProject class with properties: Id, ProjectName, SourcePath, TargetPath, Status, CreatedAt, CompletedAt, TotalFiles, TransformedFiles, ErrorMessage, and a navigation collection Logs"
+Copilot generates the entire class for you
+Example: Create DbContext
+Open src/CodeMigrationTool.Database/MigrationDbContext.cs and use Copilot Chat:
+
+Code
+Prompt: "Create an EF Core DbContext for a migration tool with DbSets for 
+MigrationProject, MigrationLog, and TransformationRule. Include OnModelCreating 
+with proper relationships and indexes."
+Copilot will generate the entire context!
+
+💡 Recommended Copilot Prompts for Each Issue:
+Issue #1: Database Schema
+Code
+Create EF Core DbContext with:
+- MigrationProject (Id, ProjectName, SourcePath, TargetPath, Status, CreatedAt, CompletedAt, TotalFiles, TransformedFiles, ErrorMessage)
+- MigrationLog (Id, ProjectId, Message, Level, SourceFile, LineNumber, CreatedAt)
+- TransformationRule (Id, Name, SourcePattern, TargetPattern, RuleType, Priority, IsActive, CreatedAt)
+
+Add relationships: MigrationProject -> MigrationLog (one-to-many)
+Include indexes on frequently queried columns.
+Issue #2: CsProjectAnalyzer
+Code
+Create a CsProjectAnalyzer class that:
+- Takes a csproj file path in constructor
+- Has method ParseProject() returning ProjectMetadata
+- Extracts TargetFramework, AssemblyName, NuGet packages, and project references
+- Handles errors gracefully
+- Include unit tests with xUnit
+Issue #3: ProjectFileTransformer
+Code
+Create ProjectFileTransformer class that:
+- Takes old .NET Framework csproj XML
+- Converts to .NET 10 SDK format
+- Removes unsupported properties
+- Updates package references to .NET 10 compatible versions
+- Returns new csproj XML string
+✅ Your Workflow:
+✅ Clone repo → Open in VS Code
+✅ Install Copilot extension
+✅ Run dotnet commands to create projects
+✅ Open files and use Copilot Chat for code generation
+✅ Let Copilot write the code while you review & refine
+✅ Build & test with dotnet build and dotnet test
+✅ Commit to GitHub
+🎯 Next Steps:
+Clone, setup, and build the solution
+Use Copilot Chat to generate each class/file
+Run dotnet build to verify everything compiles
+Push to GitHub when ready
+📝 Quick Copilot Tips:
+Action	Shortcut
+Open Copilot Chat	Ctrl+Shift+I
+Accept suggestion	Tab or Enter
+Reject suggestion	Esc
+Show alternatives	Alt+[ or Alt+]
+Comment to code	Start typing above code, Copilot suggests
+You're all set! 🚀
+
+Open VS Code, clone the repo, install Copilot, and start building. Copilot will handle most of the heavy lifting. Just review and refine as needed!
+
+Let me know once you've:
+
+✅ Cloned the repo
+✅ Installed Copilot
+✅ Created the project structure
+✅ Built successfully
+Then we can move to Issue #1 implementation with Copilot's help! 💪

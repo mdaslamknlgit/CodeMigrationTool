@@ -1,0 +1,143 @@
+Create a complete .NET 10 Code Migration Tool solution with the following structure and code:
+
+MODELS NAMESPACE (CodeMigrationTool.Models):
+
+1. MigrationProject.cs class:
+   - Properties: int Id, string ProjectName, string SourcePath, string TargetPath, string Status (Pending/Analyzing/Transforming/Completed/Failed, default "Pending"), DateTime CreatedAt (auto UtcNow), DateTime? CompletedAt, int TotalFiles, int TransformedFiles, string? ErrorMessage, virtual ICollection<MigrationLog> Logs (init to new List)
+   - Include XML documentation
+
+2. MigrationLog.cs class:
+   - Properties: int Id, int ProjectId, string Message, string Level (Info/Warning/Error, default "Info"), string? SourceFile, int? LineNumber, DateTime CreatedAt (auto UtcNow), virtual MigrationProject Project
+   - Include XML documentation
+
+3. TransformationRule.cs class:
+   - Properties: int Id, string Name, string SourcePattern, string TargetPattern, string RuleType (Namespace/Package/Syntax/API, default "Namespace"), int Priority, bool IsActive (default true), DateTime CreatedAt (auto UtcNow)
+   - Include XML documentation
+
+4. ProjectMetadata.cs class:
+   - Properties: string ProjectName, string ProjectPath, string TargetFramework, string AssemblyName, List<string> PackageReferences, List<string> ProjectReferences, List<string> FrameworkReferences, DateTime AnalyzedAt, bool IsValid, List<string> Warnings
+   - Method: void AddWarning(string warning)
+   - Include XML documentation
+
+5. AnalysisResult.cs class:
+   - Properties: string ProjectName, string ProjectPath, bool IsSuccess, ProjectMetadata? Metadata, List<string> Errors, List<string> Warnings, List<string> Blockers, DateTime AnalyzedAt, TimeSpan AnalysisDuration
+   - Property: bool HasBlockers { get; } returns Blockers.Count > 0
+   - Methods: void AddError(string error), void AddWarning(string warning), void AddBlocker(string blocker)
+   - Include XML documentation
+
+DATABASE NAMESPACE (CodeMigrationTool.Database):
+
+6. MigrationDbContext.cs:
+   - Inherits DbContext
+   - Constructor accepts DbContextOptions<MigrationDbContext>
+   - DbSet properties: Projects (MigrationProject), Logs (MigrationLog), TransformationRules (TransformationRule)
+   - Override OnModelCreating with fluent API:
+     * MigrationProject: key Id, ProjectName required max 255, Status max 50, Logs one-to-many cascade delete, HasMany relationship
+     * MigrationLog: key Id, Level max 20, index on (ProjectId, CreatedAt)
+     * TransformationRule: key Id, RuleType max 50, index on IsActive
+   - Include using Microsoft.EntityFrameworkCore and CodeMigrationTool.Models
+   - Include XML documentation
+
+ANALYZERS NAMESPACE (CodeMigrationTool.Analyzers):
+
+7. CsProjectAnalyzer.cs class:
+   - Private readonly string _projectPath
+   - Constructor accepts string projectPath
+   - Public method ProjectMetadata ParseProject() that:
+     * Loads .csproj file using System.Xml.Linq XDocument
+     * Extracts TargetFramework from PropertyGroup
+     * Extracts AssemblyName from PropertyGroup
+     * Extracts all PackageReference items (Include attribute)
+     * Extracts all ProjectReference items
+     * Extracts all FrameworkReference items
+     * Returns ProjectMetadata with all data
+     * Handles XmlException and FileNotFoundException gracefully, adds to Warnings
+   - Include XML documentation
+
+SERVICES NAMESPACE (CodeMigrationTool.Services):
+
+8. IAnalysisService.cs interface:
+   - Method: Task<AnalysisResult> AnalyzeProjectAsync(string projectPath)
+   - Method: Task<List<AnalysisResult>> AnalyzeMultipleAsync(List<string> projectPaths)
+
+9. AnalysisService.cs class implementing IAnalysisService:
+   - Private readonly ILogger<AnalysisService> _logger
+   - Constructor accepts ILogger<AnalysisService>
+   - AnalyzeProjectAsync implementation:
+     * Creates CsProjectAnalyzer(projectPath)
+     * Calls ParseProject()
+     * Creates AnalysisResult
+     * Logs each step with _logger.LogInformation
+     * Returns AnalysisResult
+     * Catches exceptions, logs as error, returns IsSuccess false
+   - AnalyzeMultipleAsync implementation:
+     * Loops through projectPaths
+     * Calls AnalyzeProjectAsync for each
+     * Returns List<AnalysisResult>
+   - Include XML documentation
+
+TRANSFORMERS NAMESPACE (CodeMigrationTool.Transformers):
+
+10. ProjectFileTransformer.cs class:
+    - Private readonly ProjectMetadata _metadata
+    - Constructor accepts ProjectMetadata metadata
+    - Public method string TransformToNetCore() that:
+      * Loads old .NET FW csproj as XML using XDocument
+      * Changes Sdk to "Microsoft.NET.Sdk.Web"
+      * Updates TargetFramework to "net10.0"
+      * Removes obsolete properties
+      * Returns transformed csproj XML as string
+    - Private helper methods: RemoveObsoleteProperties(XDocument doc), UpdateTargetFramework(XDocument doc)
+    - Include XML documentation
+
+CLI NAMESPACE (CodeMigrationTool.CLI/Commands):
+
+11. AnalyzeCommand.cs class:
+    - Public properties: string SourcePath { get; set; }, string? OutputPath { get; set; }
+    - Private readonly IAnalysisService _analysisService, ILogger<AnalyzeCommand> _logger
+    - Constructor accepts IAnalysisService and ILogger<AnalyzeCommand>
+    - Public async method Task<int> ExecuteAsync() that:
+      * Validates SourcePath exists
+      * Calls _analysisService.AnalyzeProjectAsync(SourcePath)
+      * Shows progress using Spectre.Console
+      * If HasBlockers: displays red error with AnsiConsole.MarkupLine("[red]Error![/]")
+      * If success: displays green success with AnsiConsole.MarkupLine("[green]Success![/]")
+      * Saves JSON report to OutputPath if specified using System.Text.Json
+      * Returns 0 on success, 1 on failure
+    - Private methods: DisplayResult(AnalysisResult result), SaveReportToFile(AnalysisResult result, string path)
+    - Include XML documentation
+
+12. Program.cs for CodeMigrationTool.CLI:
+    - Sets up dependency injection:
+      * IAnalysisService -> AnalysisService (Transient)
+      * ILogger -> Serilog
+    - Configures Serilog:
+      * Console output
+      * File output to "logs/migration-{Date}.log"
+      * MinimumLevel.Information
+    - Main logic:
+      * Parses args[0] for command name
+      * If "analyze": creates AnalyzeCommand, calls ExecuteAsync()
+      * If no args: shows help
+      * Returns exit code
+      * Catches and logs all exceptions
+    - Use top-level statements style
+    - Include all necessary using statements
+
+UNIT TESTS NAMESPACE (CodeMigrationTool.Analyzers.Tests):
+
+13. CsProjectAnalyzerTests.cs:
+    - Uses xUnit and Shouldly NuGet packages
+    - Public class CsProjectAnalyzerTests
+    - Test methods:
+      * [Fact] ParseProject_WithValidCsproj_ReturnsMetadata: creates temp valid .csproj, analyzes, asserts ProjectMetadata not null
+      * [Fact] ParseProject_ExtractsTargetFramework_Correctly: creates .csproj with <TargetFramework>net472</TargetFramework>, asserts TargetFramework equals "net472"
+      * [Fact] ParseProject_ExtractsAssemblyName_Correctly: creates .csproj with <AssemblyName>TestProject</AssemblyName>, asserts AssemblyName equals "TestProject"
+      * [Fact] ParseProject_ExtractsPackageReferences_Correctly: creates .csproj with PackageReference items, asserts PackageReferences.Count > 0
+      * [Fact] ParseProject_WithMissingCsproj_AddsWarning: path to non-existent file, asserts Warnings.Count > 0
+      * [Fact] ParseProject_WithInvalidXml_HandlesGracefully: creates invalid XML, asserts no exception thrown, IsValid false
+    - Each test uses Arrange-Act-Assert pattern
+    - Use Shouldly fluent assertions (e.g., result.AssemblyName.ShouldBe("TestProject"))
+    - Include XML documentation
+
+Generate all files with proper namespaces, using statements, and complete implementation. Make code production-ready with error handling, logging, and documentation.
