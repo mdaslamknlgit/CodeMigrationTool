@@ -1,0 +1,29 @@
+src/CodeMigrationTool.Models/
+├── MigrationProject.cs
+├── MigrationLog.cs
+├── TransformationRule.cs
+├── ProjectMetadata.cs
+└── AnalysisResult.cs
+
+src/CodeMigrationTool.Database/
+└── MigrationDbContext.cs
+
+src/CodeMigrationTool.Analyzers/
+└── CsProjectAnalyzer.cs
+
+src/CodeMigrationTool.Services/
+├── IAnalysisService.cs
+└── AnalysisService.cs
+
+src/CodeMigrationTool.Transformers/
+└── ProjectFileTransformer.cs
+
+src/CodeMigrationTool.CLI/Commands/
+└── AnalyzeCommand.cs
+
+src/CodeMigrationTool.CLI/
+└── Program.cs
+
+tests/CodeMigrationTool.Analyzers.Tests/
+└── CsProjectAnalyzerTests.cs
+
