@@ -1,0 +1,301 @@
+CodeMigrationTool/
+├── Core/
+│   ├── MigrationEngine.cs (orchestrates phases)
+│   ├── AnalysisEngine.cs (scan & report)
+│   └── TransformationEngine.cs (convert)
+│
+├── Analyzers/
+│   ├── CsProjectAnalyzer.cs
+│   ├── DependencyAnalyzer.cs
+│   └── CompatibilityChecker.cs
+│
+├── Transformers/
+│   ├── ProjectFileTransformer.cs
+│   ├── SourceCodeTransformer.cs (C# syntax)
+│   ├── ConfigurationTransformer.cs (web.config)
+│   └── NuGetMapper.cs
+│
+├── Models/
+│   ├── MigrationReport.cs
+│   ├── ProjectMetadata.cs
+│   └── TransformationRule.cs
+│
+├── Rules/
+│   ├── NamespaceRules.json (System.Web → AspNetCore mappings)
+│   ├── PackageEquivalencyRules.json
+│   └── SyntaxRules.json
+│
+└── Output/
+    ├── GeneratedProject/
+    ├── MigrationReport.md
+    └── AppliedTransformations.log
+	
+	
+	
+=============================================================================================================================================================  
+
+📄 CodeMigrationTool-ArchitectureGuide.md
+├── 1. Executive Summary (1 page)
+├── 2. Vision & Scope (1 page)
+├── 3. Technology Recommendations (1 page)
+│   ├─ Language: C#/.NET
+│   ├─ Framework: .NET 10
+│   ├─ Data Access: EF Core + Dapper
+│   └─ AI Assistant: GitHub Copilot
+├── 4. System Architecture (2 pages)
+│   ├─ 3-Phase Migration Engine
+│   ├─ Component Diagram
+│   └─ Data Flow
+├── 5. Implementation Details (3 pages)
+│   ├─ Project Structure
+│   ├─ EF Core Models
+│   ├─ Transformation Rules
+│   └─ Code Examples
+├── 6. Migration Workflow (1 page)
+├── 7. Phased Rollout Plan (1 page)
+└── 8. GitHub Issues Breakdown (2 pages)
+
+Total: ~12 pages, ready to print/PDF
+
+=============================================================================================================================================================  
+
+# .NET Framework 4 → .NET 10 Migration Tool
+## Complete Architecture & Implementation Guide
+
+---
+
+## Table of Contents
+1. [Executive Summary](#executive-summary)
+2. [Technology Stack Recommendations](#technology-stack)
+3. [System Architecture Overview](#system-architecture)
+4. [Data Access Layer Design](#data-access-layer)
+5. [Transformation Engine Details](#transformation-engine)
+6. [Implementation Examples](#implementation-examples)
+7. [Phased Development Roadmap](#roadmap)
+8. [GitHub Issues Breakdown](#github-issues)
+
+---
+
+## 1. Executive Summary
+[Full content...]
+
+## 2. Technology Stack Recommendations
+[Full content...]
+
+### Language: C# / .NET
+[Full content...]
+
+### Database: EF Core + Dapper
+[Full content...]
+
+### LLM Assistant: GitHub Copilot
+[Full content...]
+
+## 3. System Architecture Overview
+[Full content with diagrams...]
+
+## 4. Data Access Layer Design
+[EF Core models, relationships...]
+
+## 5. Transformation Engine Details
+[All transformation examples...]
+
+## 6. Implementation Examples
+[MVC Controller example, web.config example, DI example...]
+
+## 7. Phased Development Roadmap
+[Phase 1, 2, 3 details...]
+
+## 8. GitHub Issues Breakdown
+[Complete issue list with details...]
+
+---
+
+Document Author: mdaslamknlgit
+Date: 2026-03-26
+Status: Architecture Planning Phase
+
+
+=============================================================================================================================================================  
+
+Project Structure
+
+CodeMigrationTool/
+│
+├── .github/
+│   ├── workflows/
+│   │   ├── build.yml
+│   │   ├── test.yml
+│   │   └── deploy.yml
+│   └── ISSUE_TEMPLATE/
+│       └── bug_report.md
+│
+├── src/
+│   ├── CodeMigrationTool.Core/
+│   │   ├── MigrationEngine.cs
+│   │   ├── AnalysisEngine.cs
+│   │   ├── TransformationEngine.cs
+│   │   └── CodeMigrationTool.Core.csproj
+│   │
+│   ├── CodeMigrationTool.Analyzers/
+│   │   ├── CsProjectAnalyzer.cs
+│   │   ├── DependencyAnalyzer.cs
+│   │   ├── CompatibilityChecker.cs
+│   │   ├── CodeAnalyzer.cs
+│   │   └── CodeMigrationTool.Analyzers.csproj
+│   │
+│   ├── CodeMigrationTool.Transformers/
+│   │   ├── ProjectFileTransformer.cs
+│   │   ├── SourceCodeTransformer.cs
+│   │   ├── ConfigurationTransformer.cs
+│   │   ├── NuGetMapper.cs
+│   │   ├── ProgramCsGenerator.cs
+│   │   └── CodeMigrationTool.Transformers.csproj
+│   │
+│   ├── CodeMigrationTool.Models/
+│   │   ├── MigrationProject.cs
+│   │   ├── TransformationRule.cs
+│   │   ├── MigrationReport.cs
+│   │   ├── AnalysisResult.cs
+│   │   ├── ProjectMetadata.cs
+│   │   └── CodeMigrationTool.Models.csproj
+│   │
+│   ├── CodeMigrationTool.Database/
+│   │   ├── MigrationDbContext.cs
+│   │   ├── Migrations/
+│   │   │   └── 001_InitialCreate.cs
+│   │   └── CodeMigrationTool.Database.csproj
+│   │
+│   ├── CodeMigrationTool.Services/
+│   │   ├── IMigrationService.cs
+│   │   ├── MigrationService.cs
+│   │   ├── IAnalysisService.cs
+│   │   ├── AnalysisService.cs
+│   │   ├── ITransformationService.cs
+│   │   ├── TransformationService.cs
+│   │   ├── IReportService.cs
+│   │   ├── ReportService.cs
+│   │   └── CodeMigrationTool.Services.csproj
+│   │
+│   └── CodeMigrationTool.CLI/
+│       ├── Program.cs
+│       ├── Commands/
+│       │   ├── AnalyzeCommand.cs
+│       │   ├── MigrateCommand.cs
+│       │   └── ReportCommand.cs
+│       └── CodeMigrationTool.CLI.csproj
+│
+├── tests/
+│   ├── CodeMigrationTool.Analyzers.Tests/
+│   │   ├── CsProjectAnalyzerTests.cs
+│   │   ├── DependencyAnalyzerTests.cs
+│   │   ├── CodeMigrationTool.Analyzers.Tests.csproj
+│   │   └── Fixtures/
+│   │       └── SampleProjects/
+│   │
+│   ├── CodeMigrationTool.Transformers.Tests/
+│   │   ├── ProjectFileTransformerTests.cs
+│   │   ├── SourceCodeTransformerTests.cs
+│   │   ├── CodeMigrationTool.Transformers.Tests.csproj
+│   │   └── Fixtures/
+│   │
+│   └── CodeMigrationTool.Integration.Tests/
+│       ├── EndToEndMigrationTests.cs
+│       ├── CodeMigrationTool.Integration.Tests.csproj
+│       └── TestData/
+│
+├── rules/
+│   ├── NamespaceRules.json
+│   ├── PackageEquivalencyRules.json
+│   ├── SyntaxRules.json
+│   └── APIRules.json
+│
+├── samples/
+│   ├── SampleMVCProject/
+│   │   ├── Controllers/
+│   │   ├── Models/
+│   │   └── SampleMVCProject.csproj
+│   ├── SampleWebAPIProject/
+│   └── SampleCleanArchitectureProject/
+│
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── SETUP.md
+│   ├── USAGE.md
+│   ├── API_REFERENCE.md
+│   └── PHASE1_ROADMAP.md
+│
+├── .gitignore
+├── README.md
+├── LICENSE
+├── CONTRIBUTING.md
+└── CodeMigrationTool.sln
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
+
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
+
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
+
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
+
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
+
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
+
+
+
+
+
+
+
+
+
+=============================================================================================================================================================  
